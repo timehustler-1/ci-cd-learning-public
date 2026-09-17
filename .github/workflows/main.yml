@@ -22,13 +22,14 @@ jobs:
           # Update native package references cleanly
           sudo apt-get update -y
 
-      - name: Deploy and Configure Tailscale Engine (Official Direct Installer)
+      - name: Deploy and Configure Tailscale Engine (Native Ubuntu Mirrors)
         env:
           TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
         run: |
-          echo "Installing Tailscale via official repository script..."
-          # This is the official, rock-solid method that automatically handles keys and lists
-          curl -fsSL https://tailscale.com | sh
+          echo "Installing Tailscale directly from native Ubuntu repositories..."
+          # This completely avoids curl/web scripts and uses pre-verified system packages
+          sudo apt-get update -y
+          sudo apt-get install tailscale -y
           
           echo "Establishing encrypted mesh network routing path..."
           sudo tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=lab-tablet-runner --reset
