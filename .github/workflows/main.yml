@@ -42,8 +42,8 @@ jobs:
           if [ -f ".env.example" ]; then
               echo "Parsing core service templates..."
               
-              # 1. Modify configuration boundaries to route all outbound discovery traffic through Tor
-              # 2. Inject a secure database password string to pass Docker validation checks
+              # 1. Modify configuration boundaries to route all outbound traffic through Tor
+              # 2. Globally substitute all instances of 'NEO4J_PASSWORD=' to satisfy both container authentication rules
               sed -e 's/USE_TOR_FOR_RECON=false/USE_TOR_FOR_RECON=true/g' \
                   -e 's/NEO4J_PASSWORD=/NEO4J_PASSWORD=MySecurePass2026!/g' .env.example > .env
               
@@ -52,7 +52,15 @@ jobs:
               echo "Initializing background container engines..."
               # Launch isolated orchestration layers using native Linux Docker services
               sudo docker compose up -d
-              echo "RedAmon container infrastructure deployed successfully."
+              
+              echo "Awaiting internal system stabilization..."
+              sleep 15
+              
+              echo "Creating initial administrative panel account..."
+              # Executes RedAmon's inner creation utility cleanly bypassing terminal prompt conditions
+              sudo docker compose exec -T webapp npm run create-admin -- --email="admin@example.com" --password="MySuperSecureAdminPass2026!" --name="TabletAdmin"
+              
+              echo "RedAmon workspace initialization fully completed."
           else
               echo "::warning:: Configuration layout structures are missing. Core boot skipped."
           fi
@@ -68,6 +76,8 @@ jobs:
           echo "Tailscale Hostname : lab-tablet-runner"
           echo "Tailscale IP       : $TS_IP"
           echo "RedAmon Dashboard  : http://lab-tablet-runner:3000"
+          echo "Default Login User : admin@example.com"
+          echo "Default Login Pass : MySuperSecureAdminPass2026!"
           echo "Proxy Routing Engine: Internal Tor Overlay Enabled"
           echo "=======================================================\n"
           
@@ -78,3 +88,4 @@ jobs:
               sleep 300
               elapsed=$((elapsed + 300))
           done
+
