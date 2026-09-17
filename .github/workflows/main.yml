@@ -28,12 +28,16 @@ jobs:
           authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
           hostname: lab-tablet-runner
 
-      - name: Deploy, Configure, and Launch RedAmon Automatically
+      - name: Clone RedAmon Repository (Official Native Checkout Method)
+        uses: actions/checkout@v4
+        with:
+          repository: 'samugit83/redamon'
+          path: 'redamon'
+
+      - name: Configure and Launch RedAmon Automatically
         run: |
-          echo "Cloning target framework directory layers into workspace..."
-          # Encapsulating the link in quotes prevents the shell from breaking the string evaluation
-          git clone "https://github.com"
-          cd redamon
+          # Navigate to the cleanly checked-out directory
+          cd "$GITHUB_WORKSPACE/redamon"
           
           if [ -f ".env.example" ]; then
               echo "Parsing core service templates..."
