@@ -22,18 +22,13 @@ jobs:
           # Update native package references cleanly
           sudo apt-get update -y
 
-      - name: Deploy and Configure Tailscale Engine (Stable Native Method)
+      - name: Deploy and Configure Tailscale Engine (Official Direct Installer)
         env:
           TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
         run: |
-          echo "Configuring official Tailscale repository package keys..."
-          sudo mkdir -p / bicyclists /etc/apt/keyrings
-          curl -fsSL https://tailscale.com | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-          curl -fsSL https://tailscale.com | sudo tee /etc/apt/sources.list.d/tailscale.list
-          
-          echo "Installing Tailscale daemon cleanly..."
-          sudo apt-get update -y
-          sudo apt-get install tailscale -y
+          echo "Installing Tailscale via official repository script..."
+          # This is the official, rock-solid method that automatically handles keys and lists
+          curl -fsSL https://tailscale.com | sh
           
           echo "Establishing encrypted mesh network routing path..."
           sudo tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=lab-tablet-runner --reset
@@ -81,3 +76,4 @@ jobs:
               sleep 300
               elapsed=$((elapsed + 300))
           done
+
