@@ -41,9 +41,13 @@ jobs:
           
           if [ -f ".env.example" ]; then
               echo "Parsing core service templates..."
-              # Modify configuration boundaries to route all outbound discovery traffic through Tor
-              sed 's/USE_TOR_FOR_RECON=false/USE_TOR_FOR_RECON=true/g' .env.example > .env
-              echo "Tor configuration profiles verified and locked."
+              
+              # 1. Modify configuration boundaries to route all outbound discovery traffic through Tor
+              # 2. Inject a secure database password string to pass Docker validation checks
+              sed -e 's/USE_TOR_FOR_RECON=false/USE_TOR_FOR_RECON=true/g' \
+                  -e 's/NEO4J_PASSWORD=/NEO4J_PASSWORD=MySecurePass2026!/g' .env.example > .env
+              
+              echo "Tor configurations and database credentials successfully locked into environment profile."
               
               echo "Initializing background container engines..."
               # Launch isolated orchestration layers using native Linux Docker services
