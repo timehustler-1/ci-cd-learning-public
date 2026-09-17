@@ -31,7 +31,8 @@ jobs:
       - name: Deploy, Configure, and Launch RedAmon Automatically
         run: |
           echo "Cloning target framework directory layers into workspace..."
-          git clone https://github.com
+          # Encapsulating the link in quotes prevents the shell from breaking the string evaluation
+          git clone "https://github.com"
           cd redamon
           
           if [ -f ".env.example" ]; then
@@ -69,4 +70,3 @@ jobs:
               sleep 300
               elapsed=$((elapsed + 300))
           done
-
