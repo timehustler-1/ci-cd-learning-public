@@ -81,10 +81,13 @@ jobs:
 
       - name: Deploy, Configure, and Launch RedAmon Automatically
         run: |
-          Write-Host "Cloning RedAmon repository to D:\ drive..."
-          Set-Location D:\
+          Write-Host "Cloning RedAmon repository to D:/ drive..."
+          cd D:/
+          
+          # Clean clone using exact repository target path to avoid string merging errors
           git clone https://github.com
-          Set-Location D:\redamon
+          
+          cd D:/redamon
           
           if (Test-Path ".env.example") {
               Write-Host "Configuring Environment Variables..."
@@ -93,12 +96,12 @@ jobs:
               # Automatically flip the flag to turn on internal Tor routing natively
               $envContent = $envContent -replace 'USE_TOR_FOR_RECON=false', 'USE_TOR_FOR_RECON=true'
               $envContent | Set-Content .env
-              Write-Host "Tor successfully activated within RedAmon core."
+              Write-Host "Tor successfully activated within RedAmon configuration profile."
               
-              # Automated boot sequence execution hook
-              Write-Host "Launching RedAmon background services..."
+              # Automated boot sequence execution engine
+              Write-Host "Launching background containers..."
               docker-compose up -d
-              Write-Host "RedAmon stack initialization successfully completed."
+              Write-Host "RedAmon multi-container infrastructure deployed successfully."
           } else {
               Write-Warning "Configuration templates missing. Multi-container initialization skipped."
           }
