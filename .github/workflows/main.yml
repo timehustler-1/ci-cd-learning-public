@@ -44,7 +44,7 @@ jobs:
           NODE_ENV=production
           PORT=3000
           
-          # AI Backend Keys Placeholder
+          # AI Backend Keys Placeholder (Configure these inside the web panel later)
           OPENAI_API_KEY=
           ANTHROPIC_API_KEY=
           OPENROUTER_API_KEY=
@@ -64,12 +64,13 @@ jobs:
           
           echo "Environment configuration successfully populated."
           
-          echo "Initializing lightweight background container engines..."
-          # Fix: --build compiles the broker container locally instead of searching the public registry
-          sudo docker compose up -d --build
+          echo "Initializing lightweight core container engines..."
+          # FIX 143: Using '--profile core' keeps RAM under 3GB by skipping the Metasploit/Kali sandbox image export.
+          # FIX 1: Using '--build' compiles the docker-broker locally instead of pulling a private repo from the registry.
+          sudo docker compose --profile core up -d --build
           
           echo "Awaiting internal system stabilization..."
-          sleep 30
+          sleep 20
           
           echo "Creating initial administrative panel account..."
           sudo docker compose exec -T webapp npm run create-admin -- --email="admin@example.com" --password="MySuperSecureAdminPass2026!" --name="TabletAdmin"
@@ -99,4 +100,3 @@ jobs:
               sleep 300
               elapsed=$((elapsed + 300))
           done
-
