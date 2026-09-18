@@ -39,31 +39,44 @@ jobs:
           # Navigate to the cleanly checked-out directory
           cd "$GITHUB_WORKSPACE/redamon"
           
-          if [ -f ".env.example" ]; then
-              echo "Parsing core service templates..."
-              
-              # 1. Modify configuration boundaries to route all outbound traffic through Tor
-              # 2. Globally substitute all instances of 'NEO4J_PASSWORD=' to satisfy both container authentication rules
-              sed -e 's/USE_TOR_FOR_RECON=false/USE_TOR_FOR_RECON=true/g' \
-                  -e 's/NEO4J_PASSWORD=/NEO4J_PASSWORD=MySecurePass2026!/g' .env.example > .env
-              
-              echo "Tor configurations and database credentials successfully locked into environment profile."
-              
-              echo "Initializing background container engines..."
-              # Launch isolated orchestration layers using native Linux Docker services
-              sudo docker compose up -d
-              
-              echo "Awaiting internal system stabilization..."
-              sleep 15
-              
-              echo "Creating initial administrative panel account..."
-              # Executes RedAmon's inner creation utility cleanly bypassing terminal prompt conditions
-              sudo docker compose exec -T webapp npm run create-admin -- --email="admin@example.com" --password="MySuperSecureAdminPass2026!" --name="TabletAdmin"
-              
-              echo "RedAmon workspace initialization fully completed."
-          else
-              echo "::warning:: Configuration layout structures are missing. Core boot skipped."
-          fi
+          echo "Writing fully patched environment configuration parameters..."
+          # Writing a complete direct file block handles ALL database requirements simultaneously
+          cat << 'EOF' > .env
+          NODE_ENV=production
+          PORT=3000
+          
+          # AI Backend Keys Placeholder (You can add these inside the web browser panel later)
+          OPENAI_API_KEY=
+          ANTHROPIC_API_KEY=
+          OPENROUTER_API_KEY=
+          GEMINI_API_KEY=
+          
+          # Database Authentication Configuration Layer
+          NEO4J_PASSWORD=MySecurePass2026!
+          POSTGRES_PASSWORD=MySecurePass2026!
+          DATABASE_URL=postgresql://postgres:MySecurePass2026!@postgres:5432/redamon
+          
+          # Native Anonymity Network Routing Configuration
+          USE_TOR_FOR_RECON=true
+          
+          # Security Signatures Mapping
+          JWT_SECRET=SuperSecretCryptoTokenString2026!
+          EOF
+          
+          echo "Environment configuration successfully populated and verified."
+          
+          echo "Initializing background container engines..."
+          # Launch isolated orchestration layers using native Linux Docker services
+          sudo docker compose up -d
+          
+          echo "Awaiting internal system stabilization..."
+          sleep 20
+          
+          echo "Creating initial administrative panel account..."
+          # Executes RedAmon's inner creation utility cleanly bypassing terminal prompt conditions
+          sudo docker compose exec -T webapp npm run create-admin -- --email="admin@example.com" --password="MySuperSecureAdminPass2026!" --name="TabletAdmin"
+          
+          echo "RedAmon workspace initialization fully completed."
 
       - name: Maintain Active Session & Await Tablet Connection
         run: |
@@ -88,4 +101,3 @@ jobs:
               sleep 300
               elapsed=$((elapsed + 300))
           done
-
