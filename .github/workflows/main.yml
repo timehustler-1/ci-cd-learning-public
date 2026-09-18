@@ -65,9 +65,8 @@ jobs:
           echo "Environment configuration successfully populated."
           
           echo "Initializing lightweight background container engines..."
-          # CRITICAL OPTIMIZATION: Pull pre-compiled images instead of building heavy source repositories
-          sudo docker compose pull
-          sudo docker compose up -d
+          # Fix: --build compiles the broker container locally instead of searching the public registry
+          sudo docker compose up -d --build
           
           echo "Awaiting internal system stabilization..."
           sleep 30
@@ -100,3 +99,4 @@ jobs:
               sleep 300
               elapsed=$((elapsed + 300))
           done
+
