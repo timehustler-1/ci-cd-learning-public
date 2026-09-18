@@ -40,12 +40,11 @@ jobs:
           cd "$GITHUB_WORKSPACE/redamon"
           
           echo "Writing fully patched environment configuration parameters..."
-          # Writing a complete direct file block handles ALL database requirements simultaneously
           cat << 'EOF' > .env
           NODE_ENV=production
           PORT=3000
           
-          # AI Backend Keys Placeholder (You can add these inside the web browser panel later)
+          # AI Backend Keys Placeholder
           OPENAI_API_KEY=
           ANTHROPIC_API_KEY=
           OPENROUTER_API_KEY=
@@ -63,17 +62,17 @@ jobs:
           JWT_SECRET=SuperSecretCryptoTokenString2026!
           EOF
           
-          echo "Environment configuration successfully populated and verified."
+          echo "Environment configuration successfully populated."
           
-          echo "Initializing background container engines..."
-          # Launch isolated orchestration layers using native Linux Docker services
+          echo "Initializing lightweight background container engines..."
+          # CRITICAL OPTIMIZATION: Pull pre-compiled images instead of building heavy source repositories
+          sudo docker compose pull
           sudo docker compose up -d
           
           echo "Awaiting internal system stabilization..."
-          sleep 20
+          sleep 30
           
           echo "Creating initial administrative panel account..."
-          # Executes RedAmon's inner creation utility cleanly bypassing terminal prompt conditions
           sudo docker compose exec -T webapp npm run create-admin -- --email="admin@example.com" --password="MySuperSecureAdminPass2026!" --name="TabletAdmin"
           
           echo "RedAmon workspace initialization fully completed."
