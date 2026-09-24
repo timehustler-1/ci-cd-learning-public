@@ -4,99 +4,111 @@ on:
   workflow_dispatch:
 
 jobs:
-  secure-recon-env:
-    runs-on: ubuntu-latest
+  secure-rdp:
+    runs-on: windows-latest
     timeout-minutes: 3600
 
     steps:
-      - name: System Environment Optimization
+      - name: Configure Core RDP Settings
         run: |
-          echo "======================================================="
-          echo "🚀 OPTIMIZING LINUX HOST CONFIGURATIONS"
-          echo "======================================================="
-          # Free up extra execution disk space by clearing unneeded tool caches
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          
-          # Update native package references cleanly
-          sudo apt-get update -y
+          # 1. Enable RDP & disable Network Level Authentication (NLA)
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0 -Force
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0 -Force
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "SecurityLayer" -Value 2 -Force
 
-      - name: Deploy and Connect Tailscale Node (Official GitHub Action)
-        uses: tailscale/github-action@v2
-        with:
-          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
-          hostname: lab-tablet-runner
+          # 2. Open Firewall port 3389 cleanly for incoming remote streams
+          Remove-NetFirewallRule -DisplayName "RDP-Tailscale" -ErrorAction SilentlyContinue
+          New-NetFirewallRule -DisplayName "RDP-Tailscale" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 3389
 
-      - name: Clone RedAmon Repository (Official Native Checkout Method)
-        uses: actions/checkout@v4
-        with:
-          repository: 'samugit83/redamon'
-          path: 'redamon'
+          # 3. Apply configurations via structural restarts
+          Restart-Service -Name TermService -Force
 
-      - name: Configure and Launch RedAmon Automatically
+      - name: Create RDP User with Secure Password
         run: |
-          # Navigate to the cleanly checked-out directory
-          cd "$GITHUB_WORKSPACE/redamon"
-          
-          echo "Writing fully patched environment configuration parameters..."
-          cat << 'EOF' > .env
-          NODE_ENV=production
-          PORT=3000
-          
-          # AI Backend Keys Placeholder (Configure these inside the web panel later)
-          OPENAI_API_KEY=
-          ANTHROPIC_API_KEY=
-          OPENROUTER_API_KEY=
-          GEMINI_API_KEY=
-          
-          # Database Authentication Configuration Layer
-          NEO4J_PASSWORD=MySecurePass2026!
-          POSTGRES_PASSWORD=MySecurePass2026!
-          DATABASE_URL=postgresql://postgres:MySecurePass2026!@postgres:5432/redamon
-          
-          # Native Anonymity Network Routing Configuration
-          USE_TOR_FOR_RECON=true
-          
-          # Security Signatures Mapping
-          JWT_SECRET=SuperSecretCryptoTokenString2026!
-          EOF
-          
-          echo "Environment configuration successfully populated."
-          
-          echo "Initializing lightweight core container engines..."
-          # FIX 143: Using '--profile core' keeps RAM under 3GB by skipping the Metasploit/Kali sandbox image export.
-          # FIX 1: Using '--build' compiles the docker-broker locally instead of pulling a private repo from the registry.
-          sudo docker compose --profile core up -d --build
-          
-          echo "Awaiting internal system stabilization..."
-          sleep 20
-          
-          echo "Creating initial administrative panel account..."
-          sudo docker compose exec -T webapp npm run create-admin -- --email="admin@example.com" --password="MySuperSecureAdminPass2026!" --name="TabletAdmin"
-          
-          echo "RedAmon workspace initialization fully completed."
+          # Clear out any collision profiles from dirty checkout steps
+          if (Get-LocalUser -Name "kaliuser" -ErrorAction SilentlyContinue) {
+              Remove-LocalUser -Name "kaliuser"
+          }
 
-      - name: Maintain Active Session & Await Tablet Connection
+          # Standardize user workspace credentials permanently
+          $securePass = ConvertTo-SecureString "KaliPass2026!" -AsPlainText -Force
+          New-LocalUser -Name "kaliuser" -Password $securePass -AccountNeverExpires
+          Add-LocalGroupMember -Group "Administrators" -Member "kaliuser"
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "kaliuser"
+          Write-Host "Static credentials for user 'kaliuser' registered successfully."
+
+      - name: Install Tailscale
         run: |
-          # Retrieve assigned network reference address safely via local tailscale binary
-          TS_IP=$(tailscale ip -4)
+          Write-Host "Deploying Tailscale via headless package manager automation..."
+          # FIX: Bypasses msiexec extraction deadlocks entirely by compiling the package through Choco
+          choco install tailscale -y --no-progress
           
-          echo -e "\n======================================================="
-          echo "🚀 STREAMLINED LINUX DOCKER WORKSPACE LIVE AND READY"
-          echo "======================================================="
-          echo "Tailscale Hostname : lab-tablet-runner"
-          echo "Tailscale IP       : $TS_IP"
-          echo "RedAmon Dashboard  : http://lab-tablet-runner:3000"
-          echo "Default Login User : admin@example.com"
-          echo "Default Login Pass : MySuperSecureAdminPass2026!"
-          echo "Proxy Routing Engine: Internal Tor Overlay Enabled"
-          echo "=======================================================\n"
+          # Block wrapper verification validation loop
+          $exePath = "C:\Program Files\Tailscale\tailscale.exe"
+          $timeoutSec = 45
+          $elapsed = 0
+          while (-not (Test-Path $exePath) -and $elapsed -lt $timeoutSec) {
+              Start-Sleep -Seconds 2
+              $elapsed += 2
+              Write-Host "Verifying service registration profile on system... ($elapsed s)"
+          }
+
+      - name: Establish Tailscale Connection
+        env:
+          TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
+        run: |
+          # Append installation paths into the active step context shell runtime environment
+          $env:Path += ";C:\Program Files\Tailscale"
+          $exePath = "C:\Program Files\Tailscale\tailscale.exe"
+
+          if (-not (Test-Path $exePath)) {
+              Write-Error "CRITICAL: Tailscale installation step did not finish routing files cleanly."
+              exit 1
+          }
+
+          Write-Host "Connecting tunnel node using static permanent workspace identity..."
+          # The reset flag clears prior hanging handshake traces instantly
+          & "$exePath" up --authkey=$env:TAILSCALE_AUTH_KEY --hostname=lab-tablet-runner --reset
           
-          # Maintain background engine state for secure remote operation
-          elapsed=0
-          while [ $elapsed -lt 18000 ]; do
-              echo "[$(date)] Core environments operational. Manage your scans directly from your Samsung Tab browser..."
-              sleep 300
-              elapsed=$((elapsed + 300))
-          done
+          # Poll interface for assigned network address properties
+          $tsIP = $null
+          $retries = 0
+          while (-not $tsIP -and $retries -lt 12) {
+              $tsIP = & "$exePath" ip -4
+              if ($tsIP) { $tsIP = $tsIP.Trim() }
+              Start-Sleep -Seconds 5
+              $retries++
+          }
+          
+          if (-not $tsIP) {
+              Write-Error "Tailscale overlay engine timed out establishing virtual port routes."
+              exit 1
+          }
+          
+          echo "TAILSCALE_IP=$tsIP" >> $env:GITHUB_ENV
+
+      - name: Verify RDP Accessibility
+        run: |
+          Write-Host "Validating network stack connectivity..."
+          $testResult = Test-NetConnection -ComputerName $env:TAILSCALE_IP -Port 3389
+          if (-not $testResult.TcpTestSucceeded) {
+              Write-Error "Local interface pipeline is actively dropping port 3389 packets."
+              exit 1
+          }
+          Write-Host "TCP handshake loop successful! Host computer ready for remote client interaction."
+
+      - name: Maintain Connection
+        run: |
+          Write-Host "`n==============================================="
+          Write-Host "🚀 PERMANENT WORKSPACE CONNECTED AND ACTIVE"
+          Write-Host "==============================================="
+          Write-Host "Tailscale IP   : $env:TAILSCALE_IP"
+          Write-Host "Magic DNS Host : lab-tablet-runner.tail9a3319.ts.net"
+          Write-Host "Username       : kaliuser"
+          Write-Host "Password       : KaliPass2026!"
+          Write-Host "===============================================\n"
+          
+          while ($true) {
+              Write-Host "[$(Get-Date)] Machine session active. Awaiting tablet client connection stream..."
+              Start-Sleep -Seconds 300
+          }
